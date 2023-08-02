@@ -3,20 +3,25 @@ import discord
 import asyncio
 import requests
 import os
+import json
+from os import path
 
 #初期設定
 #botの権限 .allで全ての権限を与える。
 intents = discord.Intents.default()
 #botを定義する
 bot = discord.Client(intents=intents)
+#jsonファイルから情報を取得する
+with open(path.join(path.dirname(__file__), "data.json"), "r") as f:
+    data = json.load(f) #dataにjsonファイルの内容を代入
 #discordのトークン
-dcToken = os.environ["DP-dcToken"]
+dcToken = data["keys"]["dcToken"]
 #discordのwebhookのURL
-dcURL = os.environ["DcURL"]
+dcURL = data["keys"]["dcURL"]
 
 #新しいユーザーが参加したときの処理
 @bot.event
-async def on_member_join(member):
+async def on_member_join(member: discord.Member):
     print("new member joined")
     #welcomeメッセージを作成
     message = f"{member.mention}さん、大豆共和国へようこそ！\n<#1124242129783377961>を確認してください。\nその後、<#1124235224641982516>で自己紹介をしてください。"
