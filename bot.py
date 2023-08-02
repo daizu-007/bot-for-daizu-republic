@@ -20,6 +20,14 @@ dcToken = data["keys"]["dcToken"]
 #discordのwebhookのURL
 dcURL = data["keys"]["dcURL"]
 
+#実行
+bot.run(dcToken) #botを実行
+
+#botが起動したときの処理
+@bot.event
+async def on_ready():
+    print("bot is ready")   #botが起動したことを表示
+
 #新しいユーザーが参加したときの処理
 @bot.event
 async def on_member_join(member):
@@ -29,10 +37,37 @@ async def on_member_join(member):
     #welcomeメッセージを送信
     await bot.get_channel(1124235204375085108).send(message)
 
-#botが起動したときの処理
+#ユーザーがサーバーから退出したときの処理
 @bot.event
-async def on_ready():
-    print("bot is ready")   #botが起動したことを表示
+async def on_member_remove(member):
+    print("member left")
+    #退出メッセージを作成
+    message = f"{member.name}さんが、大豆共和国を去りました。"
+    #退出メッセージを送信
+    await bot.get_channel(1124235204375085108).send(message)
 
-#実行
-bot.run(dcToken) #botを実行
+#メッセージが送信されたときの処理
+@bot.event
+async def on_message(message):
+    #メッセージの送信者がbotなら
+    if message.author.bot:
+        return #何もしない
+    #メッセージが送信されたチャンネルが自己紹介チャンネルなら
+    if message.channel.id == 1124235224641982516:
+        #メッセージが自己紹介かどうかを判定
+        if isSelfIntroduction(message.content,message.author.name):
+            #メッセージを送信
+            await message.channel.send("自己紹介ありがとうございます。")
+        else:
+            #メッセージを送信
+            await message.channel.send("自己紹介をお願いします。")
+
+#文章が自己紹介かどうかを判定する関数
+def isSelfIntroduction(text,user):
+    if user in text:
+        return True
+    else:
+        return False
+
+
+
