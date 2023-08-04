@@ -18,7 +18,12 @@ with open(path.join(path.dirname(__file__), "data.json"), "r") as f:
 #discordのトークン
 dcToken = data["keys"]["dcToken"]
 #discordのwebhookのURL
-dcURL = data["keys"]["dcURL"]
+dcURLs = data["keys"]["webhookURL"]
+#jsonファイルから絵文字の情報を取得する
+with open(path.join(path.dirname(__file__), "emojis.json"), "r") as f:
+    emojis = json.load(f) #emojisにjsonファイルの内容を代入
+#headerの設定
+headers = {'Content-Type': 'application/json'}
 
 
 #botが起動したときの処理
@@ -62,6 +67,22 @@ async def on_message(message):
             await message.channel.send(f"<@1034077539938881577>、{message.author.mention}さんが自己紹介をしました。確認してください。")
     #メッセージが送信されたチャンネルが自己紹介チャンネルでないなら
     else:
+        if message.content.startswith("$"):
+            emoji_name = message.content[1:] #メッセージの先頭の"$"を削除
+            emoji_URL = emojis.get(emoji_name) #絵文字のURLを取得
+            if emoji_URL == None: #絵文字のURLが存在しないなら
+                await message.channel.send("その絵文字は存在しません。") #TODO 今後送信したユーザーにのみ表示されるようにする
+            else: #絵文字のURLが存在するなら
+                username = message.author.display_name #ユーザー名を取得
+                avatar_of_user= message.author.display_avatar #ユーザーのアバターを取得
+                #スタンプの内容を作成
+                stamp_content = {
+                    "username": username,
+                    "avatar_url": str(avatar_of_user), #アバターのURLを文字列に変換 っていうかasset型ってなんだよ
+                    "content": emoji_URL #TODO 今後embedを使うようにする
+                }
+                #スタンプを送信
+                requests.post(dcURLs["emojis"]["hiroba"], json.dumps(stamp_content), headers=headers)
         await bot.process_commands(message) #コマンドを処理する
 
 #文章が自己紹介かどうかを判定する関数
@@ -77,16 +98,16 @@ def isSelfIntroduction(text,user):
 async def ping(ctx): 
     await ctx.send("pong")
 
-#helpコマンド
-@bot.command(name="list", description="コマンド一覧を表示します。", guild_ids=["1109024847432007771"])
-async def help(ctx):
+#HELPコマンド
+@bot.command(name="HELP", description="コマンド一覧を表示します。", guild_ids=["1109024847432007771"])
+async def HELP(ctx):
     #helpメッセージを作成
     message = """
-
-コマンド一覧
-    /ping:pingを返します。
-    /help:コマンド一覧を表示します。
-
+## コマンド一覧
+ - /ping: pingを返します。
+ - /HELP: コマンド一覧を表示します。
+## スタンプ
+ - "$"で始まるメッセージを送信すると、対応するスタンプを送信できます。
 """
     #helpメッセージを送信
     await ctx.send(message)
