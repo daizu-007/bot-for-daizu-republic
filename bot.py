@@ -10,7 +10,7 @@ import requests #HTTPリクエストを送信するライブラリ
 import os #os関連の処理をするライブラリ
 import json #jsonファイルを扱うライブラリ
 from os import path #pathを扱うライブラリ 
-from discord.ext import commands #discord botを作成するためのライブラリ
+from discord.ext import commands #discord botのコマンドを扱うライブラリ
 
 
 
@@ -18,9 +18,6 @@ from discord.ext import commands #discord botを作成するためのライブ�
 
 #デバックモードを有効にする
 debug = True
-if debug:
-    import tracemalloc #メモリ使用量を計測するライブラリ
-    tracemalloc.start() #メモリ使用量の計測を開始する
 
 
 
@@ -55,13 +52,14 @@ dcURLs = config["webhookURLs"]
 headers = {'Content-Type': 'application/json'}
 
 
-
 ###discordイベント###
 
 #botが起動したときの処理
 @bot.event
 async def on_ready():
     print("bot is ready")   #botが起動したことを表示
+    global announcementChannel #アナウンスチャンネルをグローバル変数として定義
+    announcementChannel = bot.get_channel(1124899720872067122) #アナウンスチャンネルを取得
 
 
 #新しいユーザーが参加したときの処理
@@ -134,12 +132,36 @@ async def HELP(ctx):
 ## コマンド一覧
  - /ping: pingを返します。
  - /HELP: コマンド一覧を表示します。
+ - /create-stamp: スタンプを作成します。引数のnameにはスタンプの名前、image_urlにはスタンプの画像のURLを入力してください。
 ## スタンプ
  - "$"で始まるメッセージを送信すると、対応するスタンプを送信できます。
 """
     #helpメッセージを送信
     await ctx.send(message)
 
+
+#スタンプを作成するコマンド
+@bot.command(name="create-stamp", description="スタンプを作成します。", guild_ids=["1109024847432007771"])
+async def create_stamp(ctx, name: str, image_url: str):
+    #すでに同じ名前のスタンプがあるかどうかを判定
+    if name in emojis:
+        await ctx.send("すでに同じ名前のスタンプがあります。")
+        return #関数を終了する
+    #スタンプの情報を追加
+    emojis[name] = image_url
+    #スタンプの情報をjsonファイルに保存
+    with open(path.join(path.dirname(__file__), "emojis.json"), "w") as f:
+        json.dump(emojis, f, indent=4)
+    #スタンプを作成したことを送信
+    await announcementChannel.send(f"{ctx.author.mention}さんが、{name}という名前のスタンプを作成しました。")
+
+
+@bot.command()
+async def add(ctx: commands.Context, left: int, right: int):
+    """Adds two numbers together."""
+    await ctx.send(str(left + right))
+
+                       
 
 
 ###関数###
@@ -163,14 +185,14 @@ async def emoji(message):
     avatar_of_user= message.author.display_avatar #ユーザーのアバターを取得
 
     if emoji_URL == None: #絵文字のURLが存在しないなら
-        await message.reply("その絵文字は存在しません。") #メッセージを送信
+        await message.reply("その絵文字は存在しません。") #メッセージを送信 絵文字の新規追加を可能にする またこのメッセージは送信者のみ見られるようにする
     
     else: #絵文字のURLが存在するなら
         #スタンプの内容を作成
         stamp_content = {
             "username": username,
             "avatar_url": str(avatar_of_user), #アバターのURLを文字列に変換 っていうかasset型ってなんだよ
-            "content": emoji_URL #TODO 今後embedを使うようにする
+            "content": emoji_URL
         }
         #スタンプを送信
         requests.post(dcURLs["emojis"]["hiroba"], json.dumps(stamp_content), headers=headers)
