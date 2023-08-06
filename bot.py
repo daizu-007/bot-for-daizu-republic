@@ -94,6 +94,7 @@ async def on_message(message):
 
 ###コマンド###
 
+
 #pingコマンド
 
 @bot.slash_command(name="ping", description="pingを返します。", guild_ids=["1109024847432007771"])
@@ -102,24 +103,8 @@ async def ping(ctx):
     await ctx.respond("pong!") #pong!と返信する
 
 
-#HELPコマンド
-
-@bot.slash_command(name="help", description="コマンド一覧を表示します。", guild_ids=["1109024847432007771"])
-async def HELP(ctx):
-    #helpメッセージを作成
-    message = """
-## コマンド一覧
- - /ping: pingを返します。
- - /HELP: コマンド一覧を表示します。
- - /create-stamp: スタンプを作成します。引数のnameにはスタンプの名前、image_urlにはスタンプの画像のURLを入力してください。
-## スタンプ
- - "$"で始まるメッセージを送信すると、対応するスタンプを送信できます。
-"""
-    #helpメッセージを送信
-    await ctx.respond(message)
-
-
 #スタンプを作成するコマンド
+
 @bot.slash_command(name="create-stamp", description="スタンプを作成します。", guild_ids=["1109024847432007771"])
 async def create_stamp(ctx, name: str, image_url: str):
     #すでに同じ名前のスタンプがあるかどうかを判定
@@ -141,6 +126,7 @@ async def create_stamp(ctx, name: str, image_url: str):
 
 
 #スタンプリストを表示するコマンド
+
 @bot.slash_command(name="list-stamp", description="スタンプの一覧を表示します。", guild_ids=["1109024847432007771"])
 async def list_stamp(ctx):
     #スタンプの一覧を表示するメッセージを作成
@@ -149,6 +135,27 @@ async def list_stamp(ctx):
         message += f" - {name}\n"
     #スタンプの一覧を送信
     await ctx.respond(message)
+
+
+#HELPコマンド
+
+@bot.slash_command(name="help", description="コマンド一覧を表示します。", guild_ids=["1109024847432007771"])
+async def HELP(ctx):
+    #helpメッセージを作成
+    message = """
+## コマンド一覧
+ - /ping: pingを返します。
+ - /HELP: コマンド一覧を表示します。
+ - /create-stamp: スタンプを作成します。引数のnameにはスタンプの名前、image_urlにはスタンプの画像のURLを入力してください。
+ - list-stamp: スタンプの一覧を表示します。
+## スタンプ
+ - "$"で始まるメッセージを送信すると、対応するスタンプを送信できます。
+"""
+    #helpメッセージを送信
+    await ctx.respond(message)
+
+
+
 
                        
 
@@ -198,8 +205,9 @@ bot.run(dcToken) #botを実行
 
 ###メモ###
 '''
-TODO
+TODO:
     - 絵文字リスト表示コマンドを改善
     - 絵文字削除コマンド
     - 送ったスタンプを管理者以外も消せるようにする
+        - スタンプに返信して削除できるようにする
 '''
