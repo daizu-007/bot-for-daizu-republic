@@ -98,7 +98,8 @@ async def on_message(message):
 
 @bot.slash_command(name="ping", description="pingを返します。", guild_ids=["1109024847432007771"])
 async def ping(ctx): 
-    await ctx.send("pong")
+    #await ctx.response.defer()
+    await ctx.respond("pong!") #pong!と返信する
 
 
 #HELPコマンド
@@ -115,7 +116,7 @@ async def HELP(ctx):
  - "$"で始まるメッセージを送信すると、対応するスタンプを送信できます。
 """
     #helpメッセージを送信
-    await ctx.send(message)
+    await ctx.respond(message)
 
 
 #スタンプを作成するコマンド
@@ -123,15 +124,32 @@ async def HELP(ctx):
 async def create_stamp(ctx, name: str, image_url: str):
     #すでに同じ名前のスタンプがあるかどうかを判定
     if name in emojis:
-        await ctx.send("すでに同じ名前のスタンプがあります。")
+        await ctx.respond("すでに同じ名前のスタンプがあります。")
         return #関数を終了する
     #スタンプの情報を追加
     emojis[name] = image_url
     #スタンプの情報をjsonファイルに保存
     with open(path.join(path.dirname(__file__), "emojis.json"), "w") as f:
         json.dump(emojis, f, indent=4)
+    #スタンプが作成されたことを示すembedを作成
+    embed = discord.Embed(title="スタンプが作成されました。", description=f"スタンプの名前: {name}\nスタンプの画像のURL: {image_url}")
+    embed.set_image(url=image_url)
+    embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.display_avatar)
     #スタンプを作成したことを送信
-    await announcementChannel.send(f"{ctx.author.mention}さんが、{name}という名前のスタンプを作成しました。") #TODO: embedにする
+    message = await announcementChannel.send(embed=embed) #アナウンスチャンネルに送信
+    await ctx.respond(f"スタンプを作成しました。{message.jump_url}")
+
+
+#スタンプリストを表示するコマンド
+@bot.slash_command(name="list-stamp", description="スタンプの一覧を表示します。", guild_ids=["1109024847432007771"])
+async def list_stamp(ctx):
+    #スタンプの一覧を表示するメッセージを作成
+    message = "## スタンプの一覧\n"
+    for name in emojis:
+        message += f" - {name}\n"
+    #スタンプの一覧を送信
+    await ctx.respond(message)
+
                        
 
 
@@ -175,3 +193,13 @@ async def emoji(message):
 ###実行###
 
 bot.run(dcToken) #botを実行
+
+
+
+###メモ###
+'''
+TODO
+    - 絵文字リスト表示コマンドを改善
+    - 絵文字削除コマンド
+    - 送ったスタンプを管理者以外も消せるようにする
+'''
