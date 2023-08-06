@@ -62,28 +62,6 @@ async def on_ready():
     announcementChannel = bot.get_channel(1124899720872067122) #アナウンスチャンネルを取得
 
 
-#新しいユーザーが参加したときの処理
-
-@bot.event
-async def on_member_join(member):
-    print("new member joined")
-    #welcomeメッセージを作成
-    message = f"{member.mention}さん、大豆共和国へようこそ！\n<#1124242129783377961>を確認してください。\nその後、<#1124235224641982516>で自己紹介をしてください。"
-    #welcomeメッセージを送信
-    await bot.get_channel(1124235204375085108).send(message)
-
-
-#ユーザーがサーバーから退出したときの処理
-
-@bot.event
-async def on_member_remove(member):
-    print("member left")
-    #退出メッセージを作成
-    message = f"{member.display_name}さんが、大豆共和国を去りました。"
-    #退出メッセージを送信
-    await bot.get_channel(1124235204375085108).send(message)
-
-
 #メッセージが送信されたときの処理
 
 @bot.event
@@ -118,14 +96,14 @@ async def on_message(message):
 
 #pingコマンド
 
-@bot.command(name="ping", description="pingを返します。", guild_ids=["1109024847432007771"])
+@bot.slash_command(name="ping", description="pingを返します。", guild_ids=["1109024847432007771"])
 async def ping(ctx): 
     await ctx.send("pong")
 
 
 #HELPコマンド
 
-@bot.command(name="HELP", description="コマンド一覧を表示します。", guild_ids=["1109024847432007771"])
+@bot.slash_command(name="help", description="コマンド一覧を表示します。", guild_ids=["1109024847432007771"])
 async def HELP(ctx):
     #helpメッセージを作成
     message = """
@@ -141,7 +119,7 @@ async def HELP(ctx):
 
 
 #スタンプを作成するコマンド
-@bot.command(name="create-stamp", description="スタンプを作成します。", guild_ids=["1109024847432007771"])
+@bot.slash_command(name="create-stamp", description="スタンプを作成します。", guild_ids=["1109024847432007771"])
 async def create_stamp(ctx, name: str, image_url: str):
     #すでに同じ名前のスタンプがあるかどうかを判定
     if name in emojis:
@@ -153,14 +131,7 @@ async def create_stamp(ctx, name: str, image_url: str):
     with open(path.join(path.dirname(__file__), "emojis.json"), "w") as f:
         json.dump(emojis, f, indent=4)
     #スタンプを作成したことを送信
-    await announcementChannel.send(f"{ctx.author.mention}さんが、{name}という名前のスタンプを作成しました。")
-
-
-@bot.command()
-async def add(ctx: commands.Context, left: int, right: int):
-    """Adds two numbers together."""
-    await ctx.send(str(left + right))
-
+    await announcementChannel.send(f"{ctx.author.mention}さんが、{name}という名前のスタンプを作成しました。") #TODO: embedにする
                        
 
 
