@@ -59,7 +59,7 @@ headers = {'Content-Type': 'application/json'}
 async def on_ready():
     print("bot is ready")   #botが起動したことを表示
     global announcementChannel #アナウンスチャンネルをグローバル変数として定義
-    announcementChannel = bot.get_channel(1124899720872067122) #アナウンスチャンネルを取得
+    announcementChannel = bot.get_channel(config["ids"]["announcements"]) #アナウンスチャンネルを取得
 
 
 #メッセージが送信されたときの処理
@@ -83,7 +83,7 @@ async def on_message(message):
         return #関数を終了する
     
     #メッセージが送信されたチャンネルが自己紹介チャンネルでないなら
-    if message.content.startswith("$"): #メッセージが"$"で始まるなら
+    if message.content.startswith("%"): #メッセージが"%"で始まるなら
         #絵文字関連の処理をする
         await emoji(message)
         return #関数を終了する
@@ -149,15 +149,11 @@ async def HELP(ctx):
  - /create-stamp: スタンプを作成します。引数のnameにはスタンプの名前、image_urlにはスタンプの画像のURLを入力してください。
  - list-stamp: スタンプの一覧を表示します。
 ## スタンプ
- - "$"で始まるメッセージを送信すると、対応するスタンプを送信できます。
+ - "%"で始まるメッセージを送信すると、対応するスタンプを送信できます。
 """
     #helpメッセージを送信
     await ctx.respond(message)
 
-
-
-
-                       
 
 
 ###関数###
@@ -175,13 +171,18 @@ def isSelfIntroduction(text,user):
 
 async def emoji(message):
     #必要な情報を取得
-    emoji_name = message.content[1:] #メッセージの先頭の"$"を削除
+    emoji_name = message.content[1:] #メッセージの先頭の"%"を削除した文字列を取得
     emoji_URL = emojis.get(emoji_name) #絵文字のURLを取得
     username = message.author.display_name #ユーザー名を取得
     avatar_of_user= message.author.display_avatar #ユーザーのアバターを取得
+    content = message.content #メッセージの内容を取得
+    message_channel = message.channel.id #メッセージが送信されたチャンネルのidを取得
+    webhookURL = dcURLs.get(str(message_channel)) #メッセージが送信されたチャンネルのwebhookのURLを取得
 
+    if webhookURL == None: #webhookのURLが存在しないなら
+        await message.reply("このチャンネルではカスタムスタンプを利用できません。") #メッセージを送信
     if emoji_URL == None: #絵文字のURLが存在しないなら
-        await message.reply("その絵文字は存在しません。") #メッセージを送信 絵文字の新規追加を可能にする またこのメッセージは送信者のみ見られるようにする
+        await message.reply("そのスタンプは存在しません。") #メッセージを送信 絵文字の新規追加を可能にする
     
     else: #絵文字のURLが存在するなら
         #スタンプの内容を作成
@@ -191,7 +192,7 @@ async def emoji(message):
             "content": emoji_URL
         }
         #スタンプを送信
-        requests.post(dcURLs["emojis"]["hiroba"], json.dumps(stamp_content), headers=headers)
+        requests.post(webhookURL, json.dumps(stamp_content), headers=headers)
         #元のメッセージを削除
         await message.delete()
 
