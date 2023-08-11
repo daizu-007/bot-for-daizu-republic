@@ -177,24 +177,24 @@ async def emoji(message):
     avatar_of_user= message.author.display_avatar #ユーザーのアバターを取得
     content = message.content #メッセージの内容を取得
     message_channel = message.channel.id #メッセージが送信されたチャンネルのidを取得
-    webhookURL = dcURLs.get(str(message_channel)) #メッセージが送信されたチャンネルのwebhookのURLを取得
+    if type(message.channel) == discord.TextChannel:
+        webhooks = await message.channel.webhooks() #webhookの情報を取得
+        processed_webhooks = [obj for obj in webhooks if obj.name == "daizu-bot"]#webhookの情報からbotのwebhookの情報を取得
+    else:
+        processed_webhooks = []
 
-    if webhookURL == None: #webhookのURLが存在しないなら
-        await message.reply("このチャンネルではカスタムスタンプを利用できません。") #メッセージを送信
-    if emoji_URL == None: #絵文字のURLが存在しないなら
-        await message.reply("そのスタンプは存在しません。") #メッセージを送信 絵文字の新規追加を可能にする
+    if processed_webhooks:
+        webhook = processed_webhooks[0] #botのwebhookの情報を取得
+        if emoji_URL == None: #絵文字のURLが存在しないなら
+            await message.reply("そのスタンプは存在しません。") #メッセージを送信 絵文字の新規追加を可能にする
+        else: #絵文字のURLが存在するなら
+            #スタンプを送信
+            await webhook.send(content=emoji_URL, username=username, avatar_url=str(avatar_of_user))
+            #元のメッセージを削除
+            await message.delete()
+        return #関数を終了する
     
-    else: #絵文字のURLが存在するなら
-        #スタンプの内容を作成
-        stamp_content = {
-            "username": username,
-            "avatar_url": str(avatar_of_user), #アバターのURLを文字列に変換 っていうかasset型ってなんだよ
-            "content": emoji_URL
-        }
-        #スタンプを送信
-        requests.post(webhookURL, json.dumps(stamp_content), headers=headers)
-        #元のメッセージを削除
-        await message.delete()
+    await message.reply("このチャンネルではカスタムスタンプを利用できません。") #メッセージを送信
 
 
 
